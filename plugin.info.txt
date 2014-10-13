@@ -1,0 +1,7 @@
+base   top
+author Andreas Gohr
+email  gohr@cosmocode.de
+date   2014-10-08
+name   top plugin
+desc   show the top most visited pages
+url    http://www.cosmocode.de
