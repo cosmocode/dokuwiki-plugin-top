@@ -42,10 +42,20 @@ class helper_plugin_top extends DokuWiki_Plugin {
 
     public function add($page) {
         $sqlite = $this->getDBHelper();
+        if(!$sqlite) return;
 
-        $sql = "INSERT OR REPLACE INTO toppages (page, value)
-                  VALUES ( ?, COALESCE( (SELECT value FROM toppages WHERE page = ?) + 1, 1))";
-        $res = $sqlite->query($sql, $page, $page);
+        try {
+            $translation = new helper_plugin_translation();
+            $lang = $translation->getLangPart($page);
+        } catch (Exception $e){
+            $lang = '';
+        }
+
+        $month = date('Ym');
+
+        $sql = "INSERT OR REPLACE INTO toppages (page, value, lang, month)
+                  VALUES ( ?, COALESCE( (SELECT value FROM toppages WHERE page = ? and month = ? ) + 1, 1), ?, ?)";
+        $res = $sqlite->query($sql, $page, $page, $month, $lang, $month);
         $sqlite->res_close($res);
     }
 

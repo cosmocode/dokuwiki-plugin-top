@@ -14,7 +14,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @return string Syntax mode type
      */
     public function getType() {
-        return 'substition';
+        return 'protected';
     }
 
     /**
@@ -30,7 +30,11 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @param string $mode Parser mode
      */
     public function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('\\{\\{top\\}\\}', $mode, 'plugin_top');
+        $this->Lexer->addEntryPattern('\\{\\{top\\|?(?=.*?\\}\\})', $mode, 'plugin_top');
+    }
+
+    function postConnect() {
+        $this->Lexer->addExitPattern('.*?\\}\\}', 'plugin_top');
     }
 
     /**
@@ -43,9 +47,19 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @return array Data for the renderer
      */
     public function handle($match, $state, $pos, Doku_Handler &$handler) {
-        $data = array();
-
-        return $data;
+        if ($state==DOKU_LEXER_EXIT) {
+            $options = array('lang' => null, 'month' => null );
+            $match = rtrim($match,'\}');
+            if ($match != '') {
+                $match = explode(",", $match);
+                foreach($match as $option) {
+                    $options[explode('=', $option)[0]] = explode('=', $option)[1];
+                }
+            }
+            return array($state, $options);
+        } else {
+            return array($state, '');
+        }
     }
 
     /**
@@ -58,15 +72,17 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      */
     public function render($mode, Doku_Renderer &$renderer, $data) {
         if($mode == 'metadata') return false;
+        if($data[0] != DOKU_LEXER_EXIT) return false;
 
         /** @var helper_plugin_top $hlp */
         $hlp  = plugin_load('helper', 'top');
-        $list = $hlp->best();
+        $list = $hlp->best($data[1]['lang'],$data[1]['startdate']);
 
         $renderer->listu_open();
         foreach($list as $item) {
             $renderer->listitem_open(1);
             $renderer->internallink($item['page']);
+            $renderer->cdata(' (' . $item['value'] . ')');
             $renderer->listitem_close();
         }
         $renderer->listu_close();
