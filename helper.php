@@ -44,11 +44,11 @@ class helper_plugin_top extends DokuWiki_Plugin {
         $sqlite = $this->getDBHelper();
         if(!$sqlite) return;
 
-        try {
-            $translation = new helper_plugin_translation();
-            $lang = $translation->getLangPart($page);
-        } catch (Exception $e){
+        $translation = plugin_load('helper', 'translation');
+        if (!$translation) {
             $lang = '';
+        } else {
+            $lang = $translation->getLangPart($page);
         }
 
         $month = date('Ym');
