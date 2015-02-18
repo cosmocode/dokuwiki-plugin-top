@@ -76,10 +76,13 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
 
         /** @var helper_plugin_top $hlp */
         $hlp  = plugin_load('helper', 'top');
-        $list = $hlp->best($data[1]['lang'],$data[1]['month']);
+        $list = $hlp->best($data[1]['lang'],$data[1]['month'], 20);
 
-        $renderer->listu_open();
+        $renderer->listo_open();
+        $num_items=0;
         foreach($list as $item) {
+            if (auth_quickaclcheck($item['page']) < AUTH_READ) continue;
+            $num_items = $num_items +1;
             $renderer->listitem_open(1);
             if (strpos($item['page'],':') === false) {
                 $item['page'] = ':' . $item['page'];
@@ -87,8 +90,9 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
             $renderer->internallink($item['page']);
             $renderer->cdata(' (' . $item['value'] . ')');
             $renderer->listitem_close();
+            if ($num_items >= 10) break;
         }
-        $renderer->listu_close();
+        $renderer->listo_close();
         return true;
     }
 }
