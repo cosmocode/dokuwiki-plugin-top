@@ -3,7 +3,7 @@ top Plugin for DokuWiki
 show the top most visited pages
 
 All documentation for this plugin can be found at
-http://www.cosmocode.de
+https://www.dokuwiki.org/plugin:top
 
 If you install this plugin manually, make sure it is installed in
 lib/plugins/top/ - if the folder is called different it
