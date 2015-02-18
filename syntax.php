@@ -76,7 +76,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
 
         /** @var helper_plugin_top $hlp */
         $hlp  = plugin_load('helper', 'top');
-        $list = $hlp->best($data[1]['lang'],$data[1]['startdate']);
+        $list = $hlp->best($data[1]['lang'],$data[1]['month']);
 
         $renderer->listu_open();
         foreach($list as $item) {
