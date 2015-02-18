@@ -3,7 +3,7 @@ CREATE TEMPORARY TABLE toptemp (
     month,
     lang,
     value,
-    PRIMARY KEY(page)
+    PRIMARY KEY(page, month)
 );
 
 INSERT INTO toptemp (page, month, lang, value) SELECT page, '', '', value FROM toppages;
@@ -15,7 +15,7 @@ CREATE TABLE toppages (
     month,
     lang,
     value,
-    PRIMARY KEY(page)
+    PRIMARY KEY(page, month)
 );
 
 INSERT INTO toppages (page, month, lang, value) SELECT page, month, lang, value FROM toptemp;
