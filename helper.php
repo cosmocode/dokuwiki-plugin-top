@@ -42,10 +42,20 @@ class helper_plugin_top extends DokuWiki_Plugin {
 
     public function add($page) {
         $sqlite = $this->getDBHelper();
+        if(!$sqlite) return;
 
-        $sql = "INSERT OR REPLACE INTO toppages (page, value)
-                  VALUES ( ?, COALESCE( (SELECT value FROM toppages WHERE page = ?) + 1, 1))";
-        $res = $sqlite->query($sql, $page, $page);
+        $translation = plugin_load('helper', 'translation');
+        if (!$translation) {
+            $lang = '';
+        } else {
+            $lang = $translation->getLangPart($page);
+        }
+
+        $month = date('Ym');
+
+        $sql = "INSERT OR REPLACE INTO toppages (page, value, lang, month)
+                  VALUES ( ?, COALESCE( (SELECT value FROM toppages WHERE page = ? and month = ? ) + 1, 1), ?, ?)";
+        $res = $sqlite->query($sql, $page, $page, $month, $lang, $month);
         $sqlite->res_close($res);
     }
 
@@ -55,12 +65,25 @@ class helper_plugin_top extends DokuWiki_Plugin {
      * @param int $num
      * @return array
      */
-    public function best($num = 10) {
+    public function best($lang, $month, $num = 10) {
         $sqlite = $this->getDBHelper();
         if(!$sqlite) return array();
 
-        $sql  = "SELECT value, page FROM toppages ORDER BY value DESC LIMIT ?";
-        $res  = $sqlite->query($sql, $num);
+        $sqlbegin  = "SELECT SUM(value) as value, page FROM toppages ";
+        $sqlend = "GROUP BY page ORDER BY value DESC LIMIT ?";
+        if ($lang === null && $month === null){
+            $sql = $sqlbegin . $sqlend;
+            $res  = $sqlite->query($sql, $num);
+        } else if ($lang !== null && $month === null) {
+            $sql = $sqlbegin . "WHERE lang = ? " . $sqlend;
+            $res  = $sqlite->query($sql, $lang, $num);
+        } else if ($lang === null && $month !== null){
+            $sql = $sqlbegin . "WHERE month >= ? " . $sqlend;
+            $res  = $sqlite->query($sql, intval($month), $num);
+        } else {
+            $sql = $sqlbegin . "WHERE lang = ? AND month >= ? " . $sqlend;
+            $res  = $sqlite->query($sql, $lang, intval($month), $num);
+        }
         $list = $sqlite->res2arr($res);
         $sqlite->res_close($res);
         return $list;
