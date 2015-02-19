@@ -63,10 +63,58 @@ class best_top_test extends DokuWikiTest {
                     1 => array(
                         'lang' => '',
                         'month' => '',
+                        'tag' => 'ul',
+                        'score' => 'false',
                     )
                 ),
                 2 => DOKU_LEXER_SPECIAL,
                 3 => '{{top}}',
+            ),
+            2 => 1,
+        );
+        $this->assertEquals($expected_response, $parser_response);
+    }
+
+    function test_ol_syntax_parsing() {
+        $parser_response = p_get_instructions('{{top|tag=ol}}')[2];
+        $expected_response = array(
+            0 => 'plugin',
+            1 => array(
+                0 => 'top',
+                1 => array(
+                    0 => DOKU_LEXER_SPECIAL,
+                    1 => array(
+                        'lang' => '',
+                        'month' => '',
+                        'tag' => 'ol',
+                        'score' => 'false',
+                    )
+                ),
+                2 => DOKU_LEXER_SPECIAL,
+                3 => '{{top|tag=ol}}',
+            ),
+            2 => 1,
+        );
+        $this->assertEquals($expected_response, $parser_response);
+    }
+
+    function test_score_syntax_parsing() {
+        $parser_response = p_get_instructions('{{top|score=true}}')[2];
+        $expected_response = array(
+            0 => 'plugin',
+            1 => array(
+                0 => 'top',
+                1 => array(
+                    0 => DOKU_LEXER_SPECIAL,
+                    1 => array(
+                        'lang' => '',
+                        'month' => '',
+                        'tag' => 'ul',
+                        'score' => 'true',
+                    )
+                ),
+                2 => DOKU_LEXER_SPECIAL,
+                3 => '{{top|score=true}}',
             ),
             2 => 1,
         );
@@ -84,6 +132,8 @@ class best_top_test extends DokuWikiTest {
                     1 => array(
                         'lang' => '',
                         'month' => '201501',
+                        'tag' => 'ul',
+                        'score' => 'false',
                     )
                 ),
                 2 => DOKU_LEXER_SPECIAL,
@@ -105,6 +155,8 @@ class best_top_test extends DokuWikiTest {
                     1 => array(
                         'lang' => 'en',
                         'month' => '',
+                        'tag' => 'ul',
+                        'score' => 'false',
                     )
                 ),
                 2 => DOKU_LEXER_SPECIAL,
@@ -126,6 +178,8 @@ class best_top_test extends DokuWikiTest {
                     1 => array(
                         'lang' => 'en',
                         'month' => '201501',
+                        'tag' => 'ul',
+                        'score' => 'false',
                     )
                 ),
                 2 => DOKU_LEXER_SPECIAL,
