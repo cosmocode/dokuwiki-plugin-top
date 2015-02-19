@@ -44,7 +44,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      */
     public function handle($match, $state, $pos, Doku_Handler $handler) {
         if ($state==DOKU_LEXER_SPECIAL) {
-            $options = array('lang' => null, 'month' => null );
+            $options = array('lang' => null, 'month' => null, 'tag' => 'ul', 'score' => 'false' );
             $match = rtrim($match,'\}');
             $match = substr($match,5);
             if ($match != '') {
@@ -77,21 +77,32 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
         $hlp  = plugin_load('helper', 'top');
         $list = $hlp->best($data[1]['lang'],$data[1]['month'], 20);
 
-        $renderer->listo_open();
+        if($data[1]['tag'] == 'ol') {
+            $renderer->listo_open();
+        } else {
+            $renderer->listu_open();
+        }
+
         $num_items=0;
         foreach($list as $item) {
             if (auth_aclcheck($item['page'],'',null) < AUTH_READ) continue;
+            if (!page_exists($item['page'])) continue;
             $num_items = $num_items +1;
             $renderer->listitem_open(1);
             if (strpos($item['page'],':') === false) {
                 $item['page'] = ':' . $item['page'];
             }
             $renderer->internallink($item['page']);
-            $renderer->cdata(' (' . $item['value'] . ')');
+            if ($data[1]['score'] === 'true') $renderer->cdata(' (' . $item['value'] . ')');
             $renderer->listitem_close();
             if ($num_items >= 10) break;
         }
-        $renderer->listo_close();
+
+        if($data[1]['tag'] == 'ol') {
+            $renderer->listo_close();
+        } else {
+            $renderer->listu_close();
+        }
         return true;
     }
 }
