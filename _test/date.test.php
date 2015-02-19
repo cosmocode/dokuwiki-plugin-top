@@ -14,7 +14,6 @@ class best_top_test extends DokuWikiTest {
     protected $pluginsEnabled = array('top','sqlite');
 
     function test_best() {
-        global $ID;
 
         $top_helper = new helper_plugin_top();
         $sqlite = $top_helper->getDBHelper();
@@ -52,4 +51,89 @@ class best_top_test extends DokuWikiTest {
             'Time and language restrictions should work together.'
         );
     }
+
+    function test_vanilla_syntax_parsing() {
+        $parser_response = p_get_instructions('{{top}}')[2];
+        $expected_response = array(
+            0 => 'plugin',
+            1 => array(
+                0 => 'top',
+                1 => array(
+                    0 => DOKU_LEXER_SPECIAL,
+                    1 => array(
+                        'lang' => '',
+                        'month' => '',
+                    )
+                ),
+                2 => DOKU_LEXER_SPECIAL,
+                3 => '{{top}}',
+            ),
+            2 => 1,
+        );
+        $this->assertEquals($expected_response, $parser_response);
+    }
+
+    function test_date_syntax_parsing() {
+        $parser_response = p_get_instructions('{{top|month=201501}}')[2];
+        $expected_response = array(
+            0 => 'plugin',
+            1 => array(
+                0 => 'top',
+                1 => array(
+                    0 => DOKU_LEXER_SPECIAL,
+                    1 => array(
+                        'lang' => '',
+                        'month' => '201501',
+                    )
+                ),
+                2 => DOKU_LEXER_SPECIAL,
+                3 => '{{top|month=201501}}',
+            ),
+            2 => 1,
+        );
+        $this->assertEquals($expected_response, $parser_response);
+    }
+
+    function test_lang_syntax_parsing() {
+        $parser_response = p_get_instructions('{{top|lang=en}}')[2];
+        $expected_response = array(
+            0 => 'plugin',
+            1 => array(
+                0 => 'top',
+                1 => array(
+                    0 => DOKU_LEXER_SPECIAL,
+                    1 => array(
+                        'lang' => 'en',
+                        'month' => '',
+                    )
+                ),
+                2 => DOKU_LEXER_SPECIAL,
+                3 => '{{top|lang=en}}',
+            ),
+            2 => 1,
+        );
+        $this->assertEquals($expected_response, $parser_response);
+    }
+
+    function test_datelang_syntax_parsing() {
+        $parser_response = p_get_instructions('{{top|month=201501,lang=en}}')[2];
+        $expected_response = array(
+            0 => 'plugin',
+            1 => array(
+                0 => 'top',
+                1 => array(
+                    0 => DOKU_LEXER_SPECIAL,
+                    1 => array(
+                        'lang' => 'en',
+                        'month' => '201501',
+                    )
+                ),
+                2 => DOKU_LEXER_SPECIAL,
+                3 => '{{top|month=201501,lang=en}}',
+            ),
+            2 => 1,
+        );
+        $this->assertEquals($expected_response, $parser_response);
+    }
+
 }

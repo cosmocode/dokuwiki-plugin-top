@@ -30,11 +30,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @param string $mode Parser mode
      */
     public function connectTo($mode) {
-        $this->Lexer->addEntryPattern('\\{\\{top\\|?(?=.*?\\}\\})', $mode, 'plugin_top');
-    }
-
-    function postConnect() {
-        $this->Lexer->addExitPattern('.*?\\}\\}', 'plugin_top');
+        $this->Lexer->addSpecialPattern('\\{\\{top(?:.*?)\\}\\}', $mode, 'plugin_top');
     }
 
     /**
@@ -46,11 +42,13 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @param Doku_Handler $handler The handler
      * @return array Data for the renderer
      */
-    public function handle($match, $state, $pos, Doku_Handler &$handler) {
-        if ($state==DOKU_LEXER_EXIT) {
+    public function handle($match, $state, $pos, Doku_Handler $handler) {
+        if ($state==DOKU_LEXER_SPECIAL) {
             $options = array('lang' => null, 'month' => null );
             $match = rtrim($match,'\}');
+            $match = substr($match,5);
             if ($match != '') {
+                $match = ltrim($match,'\|');
                 $match = explode(",", $match);
                 foreach($match as $option) {
                     $options[explode('=', $option)[0]] = explode('=', $option)[1];
@@ -70,7 +68,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @param array $data The data from the handler() function
      * @return bool If rendering was successful.
      */
-    public function render($mode, Doku_Renderer &$renderer, $data) {
+    public function render($mode, Doku_Renderer $renderer, $data) {
         if($mode == 'metadata') return false;
         if($data[0] != DOKU_LEXER_EXIT) return false;
 
