@@ -70,7 +70,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      */
     public function render($mode, Doku_Renderer $renderer, $data) {
         if($mode == 'metadata') return false;
-        if($data[0] != DOKU_LEXER_EXIT) return false;
+        if($data[0] != DOKU_LEXER_SPECIAL) return false;
 
         /** @var helper_plugin_top $hlp */
         $hlp  = plugin_load('helper', 'top');
