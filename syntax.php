@@ -91,6 +91,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
                 if (auth_quickaclcheck($item['page']) < AUTH_READ) continue;
             }
             if (!page_exists($item['page'])) continue;
+            if (isHiddenPage($item['page'])) continue;
             $num_items = $num_items +1;
             $renderer->listitem_open(1);
             if (strpos($item['page'],':') === false) {
