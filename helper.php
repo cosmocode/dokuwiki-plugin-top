@@ -74,10 +74,10 @@ class helper_plugin_top extends DokuWiki_Plugin {
         if ($lang === null && $month === null){
             $sql = $sqlbegin . $sqlend;
             $res  = $sqlite->query($sql, $num);
-        } else if ($lang !== null && $month === null) {
+        } elseif ($lang !== null && $month === null) {
             $sql = $sqlbegin . "WHERE lang = ? " . $sqlend;
             $res  = $sqlite->query($sql, $lang, $num);
-        } else if ($lang === null && $month !== null){
+        } elseif ($lang === null && $month !== null){
             $sql = $sqlbegin . "WHERE month >= ? " . $sqlend;
             $res  = $sqlite->query($sql, intval($month), $num);
         } else {
@@ -86,6 +86,32 @@ class helper_plugin_top extends DokuWiki_Plugin {
         }
         $list = $sqlite->res2arr($res);
         $sqlite->res_close($res);
+
+        if ($this->getConf('hide_start_pages')) {
+            $list = $this->removeStartPages($list);
+        }
+        return $list;
+    }
+
+    public function removeStartPages($list) {
+        global $conf;
+        $start = $conf['start'];
+        $startpages = array();
+        $startpages[] = $start;
+
+        if ($conf['plugin']['translation']['translations'] !== '') {
+            $translations = explode(' ', $conf['plugin']['translation']['translations']);
+            foreach($translations as $translation) {
+                $startpages[] = $translation . ':' . $start;
+            }
+        }
+
+        foreach ($list as $index => $listitem) {
+            if (in_array($listitem['page'],$startpages, true) === true ) {
+                unset($list[$index]);
+            }
+        }
+        $list = array_values($list);
         return $list;
     }
 
