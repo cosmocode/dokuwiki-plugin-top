@@ -5,7 +5,6 @@
  *
  * @author Michael Große <grosse@cosmocode.de>
  *
- * @group Michael Große <grosse@cosmocode.de>
  * @group plugin_top
  * @group plugins
  */
