@@ -30,7 +30,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @param string $mode Parser mode
      */
     public function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('\\{\\{top(?:.*?)\\}\\}', $mode, 'plugin_top');
+        $this->Lexer->addSpecialPattern('\\{\\{top(?:\|.+?|)\\}\\}', $mode, 'plugin_top');
     }
 
     /**
