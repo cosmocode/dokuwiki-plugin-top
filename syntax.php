@@ -48,8 +48,8 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
                              'month'        => null,
                              'tag'          => 'ul',
                              'score'        => 'false',
-                             'blacklist' => null,
-                             'whitelist' => null);
+                             'blacklist'    => null,
+                             'whitelist'    => null);
             $match = rtrim($match,'\}');
             $match = substr($match,5);
             if ($match != '') {
@@ -145,6 +145,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
             $renderer->listitem_close();
             if ($num_items >= 10) break;
         }
+
         if($data[1]['tag'] == 'ol') {
             $renderer->listo_close();
         } else {
