@@ -54,6 +54,8 @@ class helper_plugin_top extends DokuWiki_Plugin {
         }
         $CrawlerDetect = new Jaybizzle\CrawlerDetect\CrawlerDetect();
         if($CrawlerDetect->isCrawler()) return;
+        
+        // insert appropriate ACT flag to ignore admin accesses? e.g. if(AUTH_ADMIN) return;
 
         $translation = plugin_load('helper', 'translation');
         if (!$translation) {
