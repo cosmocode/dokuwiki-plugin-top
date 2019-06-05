@@ -44,7 +44,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      */
     public function handle($match, $state, $pos, Doku_Handler $handler) {
         if ($state==DOKU_LEXER_SPECIAL) {
-            $options = array('lang' => null, 'month' => null, 'tag' => 'ul', 'score' => 'false' );
+            $options = array('lang' => null, 'month' => null, 'tag' => 'ul', 'score' => 'false', 'count' => 10 );
             $match = rtrim($match,'\}');
             $match = substr($match,5);
             if ($match != '') {
@@ -70,12 +70,14 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @return bool If rendering was successful.
      */
     public function render($mode, Doku_Renderer $renderer, $data) {
+        $display_count_default = 10;
+        $display_count_upper_limit = 20;
         if($mode == 'metadata') return false;
         if($data[0] != DOKU_LEXER_SPECIAL) return false;
 
         /** @var helper_plugin_top $hlp */
         $hlp  = plugin_load('helper', 'top');
-        $list = $hlp->best($data[1]['lang'],$data[1]['month'], 20);
+        $list = $hlp->best($data[1]['lang'],$data[1]['month'], $display_count_upper_limit);
 
         if($data[1]['tag'] == 'ol') {
             $renderer->listo_open();
@@ -83,7 +85,20 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
             $renderer->listu_open();
         }
 
-        $num_items=0;
+        // User-specified count of items to display
+        $display_count = $data[1]['count'];
+        if(!is_numeric($display_count)) {
+            $display_count = $display_count_default;
+        }
+        $display_count=floor($display_count);
+        if($display_count < 1) {
+            $display_count = 1;
+        }
+        if($display_count > $display_count_upper_limit) {
+            $display_count = $display_count_upper_limit;
+        }
+
+        $num_items = 0;
         foreach($list as $item) {
             if ($this->getConf('show_only_public')) {
                 if (auth_aclcheck($item['page'],'',null) < AUTH_READ) continue;
@@ -100,7 +115,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
             $renderer->internallink($item['page']);
             if ($data[1]['score'] === 'true') $renderer->cdata(' (' . $item['value'] . ')');
             $renderer->listitem_close();
-            if ($num_items >= 10) break;
+            if ($num_items >= $display_count) break;
         }
 
         if($data[1]['tag'] == 'ol') {
