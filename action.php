@@ -78,6 +78,7 @@ class action_plugin_top extends DokuWiki_Action_Plugin {
         if (empty($pages)) return;
 
         foreach ($pages as $page) {
+            if (!$hlp->isReadable($page['page'])) continue;
             $event->data['data'][] = [
                 'id' => $page['page'],
                 'score' => $page['value'],

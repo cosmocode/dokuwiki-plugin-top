@@ -87,13 +87,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
 
         $num_items=0;
         foreach ($list as $item) {
-            if ($this->getConf('show_only_public')) {
-                if (auth_aclcheck($item['page'], '', null) < AUTH_READ) continue;
-            } else {
-                if (auth_quickaclcheck($item['page']) < AUTH_READ) continue;
-            }
-            if (!page_exists($item['page'])) continue;
-            if (isHiddenPage($item['page'])) continue;
+            if (!$hlp->isReadable($item['page'])) continue;
             $num_items = $num_items +1;
             $renderer->listitem_open(1);
             if (strpos($item['page'], ':') === false) {

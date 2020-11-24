@@ -122,5 +122,24 @@ class helper_plugin_top extends DokuWiki_Plugin {
         $list = array_values($list);
         return $list;
     }
+
+    /**
+     * Returns true if the given page can be read by current user
+     *
+     * @param $id
+     * @return bool
+     */
+    public function isReadable($id)
+    {
+        if ($this->getConf('show_only_public')) {
+            if (auth_aclcheck($id, '', null) < AUTH_READ) return false;
+        } else {
+            if (auth_quickaclcheck($id) < AUTH_READ) return false;
+        }
+        if (!page_exists($id)) return false;
+        if (isHiddenPage($id)) return false;
+
+        return true;
+    }
 }
 // vim:ts=4:sw=4:et:
