@@ -6,21 +6,20 @@
  * @author  Andreas Gohr <gohr@cosmocode.de>
  */
 
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
-
 class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
     /**
      * @return string Syntax mode type
      */
-    public function getType() {
+    public function getType()
+    {
         return 'protected';
     }
 
     /**
      * @return int Sort order - Low numbers go before high numbers
      */
-    public function getSort() {
+    public function getSort()
+    {
         return 200;
     }
 
@@ -29,7 +28,8 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      *
      * @param string $mode Parser mode
      */
-    public function connectTo($mode) {
+    public function connectTo($mode)
+    {
         $this->Lexer->addSpecialPattern('\\{\\{top(?:\|.+?)?\\}\\}', $mode, 'plugin_top');
     }
 
@@ -42,7 +42,8 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @param Doku_Handler $handler The handler
      * @return array Data for the renderer
      */
-    public function handle($match, $state, $pos, Doku_Handler $handler) {
+    public function handle($match, $state, $pos, Doku_Handler $handler)
+    {
         if ($state==DOKU_LEXER_SPECIAL) {
             $options = array('lang' => null, 'month' => null, 'tag' => 'ul', 'score' => 'false' );
             $match = rtrim($match,'\}');
@@ -50,7 +51,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
             if ($match != '') {
                 $match = ltrim($match,'\|');
                 $match = explode(",", $match);
-                foreach($match as $option) {
+                foreach ($match as $option) {
                     list($key, $val) = explode('=', $option);
                     $options[$key] = $val;
                 }
@@ -69,24 +70,25 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
      * @param array $data The data from the handler() function
      * @return bool If rendering was successful.
      */
-    public function render($mode, Doku_Renderer $renderer, $data) {
-        if($mode == 'metadata') return false;
-        if($data[0] != DOKU_LEXER_SPECIAL) return false;
+    public function render($mode, Doku_Renderer $renderer, $data)
+    {
+        if ($mode == 'metadata') return false;
+        if ($data[0] != DOKU_LEXER_SPECIAL) return false;
 
         /** @var helper_plugin_top $hlp */
         $hlp  = plugin_load('helper', 'top');
-        $list = $hlp->best($data[1]['lang'],$data[1]['month'], 20);
+        $list = $hlp->best($data[1]['lang'], $data[1]['month'], 20);
 
-        if($data[1]['tag'] == 'ol') {
+        if ($data[1]['tag'] == 'ol') {
             $renderer->listo_open();
         } else {
             $renderer->listu_open();
         }
 
         $num_items=0;
-        foreach($list as $item) {
+        foreach ($list as $item) {
             if ($this->getConf('show_only_public')) {
-                if (auth_aclcheck($item['page'],'',null) < AUTH_READ) continue;
+                if (auth_aclcheck($item['page'], '', null) < AUTH_READ) continue;
             } else {
                 if (auth_quickaclcheck($item['page']) < AUTH_READ) continue;
             }
@@ -94,7 +96,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
             if (isHiddenPage($item['page'])) continue;
             $num_items = $num_items +1;
             $renderer->listitem_open(1);
-            if (strpos($item['page'],':') === false) {
+            if (strpos($item['page'], ':') === false) {
                 $item['page'] = ':' . $item['page'];
             }
             $renderer->internallink($item['page']);
@@ -103,7 +105,7 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
             if ($num_items >= 10) break;
         }
 
-        if($data[1]['tag'] == 'ol') {
+        if ($data[1]['tag'] == 'ol') {
             $renderer->listo_close();
         } else {
             $renderer->listu_close();
@@ -111,5 +113,4 @@ class syntax_plugin_top extends DokuWiki_Syntax_Plugin {
         return true;
     }
 }
-
 // vim:ts=4:sw=4:et:
