@@ -16,6 +16,7 @@ class helper_plugin_top extends DokuWiki_Plugin {
         $this->sqlite = plugin_load('helper', 'sqlite');
         if (!$this->sqlite) {
             msg('The top plugin requires the sqlite plugin', -1);
+            return null;
         }
 
         if (!$this->sqlite->init('top', __DIR__ . '/db')) {

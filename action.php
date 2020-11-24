@@ -22,7 +22,6 @@ class action_plugin_top extends DokuWiki_Action_Plugin {
 
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handleAjax');
         $controller->register_hook('FEED_MODE_UNKNOWN', 'BEFORE', $this, 'handleFeed');
-        $controller->register_hook('FEED_ITEM_ADD', 'BEFORE', $this, 'handleFeedItemAdd');
     }
 
     /**
@@ -84,20 +83,6 @@ class action_plugin_top extends DokuWiki_Action_Plugin {
                 'score' => $page['value'],
             ];
         }
-    }
-
-    /**
-     * Set our data in feed item
-     *
-     * @param Doku_Event $event
-     */
-    public function handleFeedItemAdd(Doku_Event $event)
-    {
-        if ($event->data['opt']['feed_mode'] !== 'plugin-top') return;
-
-        $event->data['item']->title = $event->data['ditem']['id'];
-        $event->data['item']->link = hsc(wl($event->data['ditem']['id'], '', true));
-        $event->data['item']->description = $event->data['ditem']['score'];
     }
 }
 // vim:ts=4:sw=4:et:
