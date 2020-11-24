@@ -65,8 +65,8 @@ class helper_plugin_top extends DokuWiki_Plugin {
     /**
      * Get the most visited pages
      *
-     * @param $lang
-     * @param $month
+     * @param string|null $lang
+     * @param string|null $month
      * @param int $num
      * @return array
      */

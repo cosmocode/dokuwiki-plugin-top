@@ -21,6 +21,8 @@ class action_plugin_top extends DokuWiki_Action_Plugin {
         $JSINFO['act'] = $ACT;
 
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handleAjax');
+        $controller->register_hook('FEED_MODE_UNKNOWN', 'BEFORE', $this, 'handleFeed');
+        $controller->register_hook('FEED_ITEM_ADD', 'BEFORE', $this, 'handleFeedItemAdd');
     }
 
     /**
@@ -47,6 +49,55 @@ class action_plugin_top extends DokuWiki_Action_Plugin {
         echo 'counted';
     }
 
-}
+    /**
+     * Fetch and add top pages to FeedCreator.
+     *
+     * Supported feed parameters:
+     * - mode: plugin-top (required)
+     * - lang: optional
+     * - month: optional (YYYYMM)
+     * - num: optional number of results (default = 10)
+     *
+     * @param Doku_Event $event
+     */
+    public function handleFeed(Doku_Event $event)
+    {
+        $opt = $event->data['opt'];
+        if ($opt['feed_mode'] !== 'plugin-top') return;
 
+        $event->preventDefault();
+
+        // set defaults as expected by the helper's best() method
+        $lang = isset($opt['lang']) ? $opt['lang'] : null;
+        $month = isset($opt['month']) ? $opt['month'] : null;
+        $num = isset($opt['num']) ? $opt['num'] : 10;
+
+        /** @var helper_plugin_top $hlp */
+        $hlp = plugin_load('helper', 'top');
+        $pages = $hlp->best($lang, $month, $num);
+
+        if (empty($pages)) return;
+
+        foreach ($pages as $page) {
+            $event->data['data'][] = [
+                'id' => $page['page'],
+                'score' => $page['value'],
+            ];
+        }
+    }
+
+    /**
+     * Set our data in feed item
+     *
+     * @param Doku_Event $event
+     */
+    public function handleFeedItemAdd(Doku_Event $event)
+    {
+        if ($event->data['opt']['feed_mode'] !== 'plugin-top') return;
+
+        $event->data['item']->title = $event->data['ditem']['id'];
+        $event->data['item']->link = hsc(wl($event->data['ditem']['id'], '', true));
+        $event->data['item']->description = $event->data['ditem']['score'];
+    }
+}
 // vim:ts=4:sw=4:et:
