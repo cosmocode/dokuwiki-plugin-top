@@ -6,37 +6,32 @@
  * @author  Andreas Gohr <gohr@cosmocode.de>
  */
 
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
-
 class helper_plugin_top extends DokuWiki_Plugin {
 
     /** @var helper_plugin_sqlite */
     protected $sqlite = null;
 
-    /**
-     * initializes the DB connection
-     *
-     * @return helper_plugin_sqlite|null
-     */
-    public function getDBHelper() {
-        if(!is_null($this->sqlite)) return $this->sqlite;
-
+    public function __construct()
+    {
         $this->sqlite = plugin_load('helper', 'sqlite');
-        if(!$this->sqlite) {
+        if (!$this->sqlite) {
             msg('The top plugin requires the sqlite plugin', -1);
-            $this->sqlite = null;
             return null;
         }
 
-        $ok = $this->sqlite->init('top', __DIR__ . '/db');
-        if(!$ok) {
-            msg('rating plugin sqlite initialization failed', -1);
-            $this->sqlite = null;
+        if (!$this->sqlite->init('top', __DIR__ . '/db')) {
+            msg('top plugin: sqlite initialization failed', -1);
             return null;
         }
+    }
 
-        return $this->sqlite;
+    /**
+     * Access to plugin's database
+     * @return helper_plugin_sqlite
+     */
+    public function getDBHelper()
+    {
+       return $this->sqlite;
     }
 
     /**
@@ -44,16 +39,14 @@ class helper_plugin_top extends DokuWiki_Plugin {
      *
      * @param string $page the page id
      */
-    public function add($page) {
-        $sqlite = $this->getDBHelper();
-        if(!$sqlite) return;
-
+    public function add($page)
+    {
         // ignore any bot accesses
-        if(!class_exists('Jaybizzle\CrawlerDetect\CrawlerDetect')){
+        if (!class_exists('Jaybizzle\CrawlerDetect\CrawlerDetect')){
             require (__DIR__ . '/CrawlerDetect.php');
         }
         $CrawlerDetect = new Jaybizzle\CrawlerDetect\CrawlerDetect();
-        if($CrawlerDetect->isCrawler()) return;
+        if ($CrawlerDetect->isCrawler()) return;
 
         $translation = plugin_load('helper', 'translation');
         if (!$translation) {
@@ -66,37 +59,37 @@ class helper_plugin_top extends DokuWiki_Plugin {
 
         $sql = "INSERT OR REPLACE INTO toppages (page, value, lang, month)
                   VALUES ( ?, COALESCE( (SELECT value FROM toppages WHERE page = ? and month = ? ) + 1, 1), ?, ?)";
-        $res = $sqlite->query($sql, $page, $page, $month, $lang, $month);
-        $sqlite->res_close($res);
+        $res = $this->sqlite->query($sql, $page, $page, $month, $lang, $month);
+        $this->sqlite->res_close($res);
     }
 
     /**
      * Get the most visited pages
      *
+     * @param string|null $lang
+     * @param string|null $month
      * @param int $num
      * @return array
      */
-    public function best($lang, $month, $num = 10) {
-        $sqlite = $this->getDBHelper();
-        if(!$sqlite) return array();
-
+    public function best($lang, $month, $num = 10)
+    {
         $sqlbegin  = "SELECT SUM(value) as value, page FROM toppages ";
         $sqlend = "GROUP BY page ORDER BY value DESC LIMIT ?";
         if ($lang === null && $month === null){
             $sql = $sqlbegin . $sqlend;
-            $res  = $sqlite->query($sql, $num);
+            $res  = $this->sqlite->query($sql, $num);
         } elseif ($lang !== null && $month === null) {
             $sql = $sqlbegin . "WHERE lang = ? " . $sqlend;
-            $res  = $sqlite->query($sql, $lang, $num);
+            $res  = $this->sqlite->query($sql, $lang, $num);
         } elseif ($lang === null && $month !== null){
             $sql = $sqlbegin . "WHERE month >= ? " . $sqlend;
-            $res  = $sqlite->query($sql, intval($month), $num);
+            $res  = $this->sqlite->query($sql, intval($month), $num);
         } else {
             $sql = $sqlbegin . "WHERE lang = ? AND month >= ? " . $sqlend;
-            $res  = $sqlite->query($sql, $lang, intval($month), $num);
+            $res  = $this->sqlite->query($sql, $lang, intval($month), $num);
         }
-        $list = $sqlite->res2arr($res);
-        $sqlite->res_close($res);
+        $list = $this->sqlite->res2arr($res);
+        $this->sqlite->res_close($res);
 
         if ($this->getConf('hide_start_pages')) {
             $list = $this->removeStartPages($list);
@@ -104,6 +97,10 @@ class helper_plugin_top extends DokuWiki_Plugin {
         return $list;
     }
 
+    /**
+     * @param array $list
+     * @return array
+     */
     public function removeStartPages($list) {
         global $conf;
         $start = $conf['start'];
@@ -126,6 +123,23 @@ class helper_plugin_top extends DokuWiki_Plugin {
         return $list;
     }
 
-}
+    /**
+     * Returns true if the given page can be read by current user
+     *
+     * @param $id
+     * @return bool
+     */
+    public function isReadable($id)
+    {
+        if ($this->getConf('show_only_public')) {
+            if (auth_aclcheck($id, '', null) < AUTH_READ) return false;
+        } else {
+            if (auth_quickaclcheck($id) < AUTH_READ) return false;
+        }
+        if (!page_exists($id)) return false;
+        if (isHiddenPage($id)) return false;
 
+        return true;
+    }
+}
 // vim:ts=4:sw=4:et:

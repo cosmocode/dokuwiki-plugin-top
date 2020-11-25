@@ -6,9 +6,6 @@
  * @author  Andreas Gohr <gohr@cosmocode.de>
  */
 
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
-
 class action_plugin_top extends DokuWiki_Action_Plugin {
 
     /**
@@ -17,31 +14,32 @@ class action_plugin_top extends DokuWiki_Action_Plugin {
      * @param Doku_Event_Handler $controller DokuWiki's event controller object
      * @return void
      */
-    public function register(Doku_Event_Handler $controller) {
+    public function register(Doku_Event_Handler $controller)
+    {
         global $ACT;
         global $JSINFO;
         $JSINFO['act'] = $ACT;
-        $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handle_ajax_call_unknown');
-   
+
+        $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handleAjax');
+        $controller->register_hook('FEED_MODE_UNKNOWN', 'BEFORE', $this, 'handleFeed');
     }
 
     /**
-     * [Custom event handler which performs action]
+     * Handle Ajax calls intended for this plugin
      *
      * @param Doku_Event $event  event object by reference
-     * @param mixed      $param  [the parameters passed as fifth argument to register_hook() when this
-     *                           handler was registered]
      * @return void
      */
 
-    public function handle_ajax_call_unknown(Doku_Event &$event, $param) {
-        if($event->data != 'plugin_top') return;
+    public function handleAjax(Doku_Event $event)
+    {
+        if ($event->data != 'plugin_top') return;
         $event->preventDefault();
         $event->stopPropagation();
 
         global $INPUT;
         $page = cleanID($INPUT->str('page'));
-        if(!$page) return;
+        if (!$page) return;
 
         /** @var helper_plugin_top $hlp */
         $hlp = plugin_load('helper', 'top');
@@ -50,6 +48,42 @@ class action_plugin_top extends DokuWiki_Action_Plugin {
         echo 'counted';
     }
 
-}
+    /**
+     * Fetch and add top pages to FeedCreator.
+     *
+     * Supported feed parameters:
+     * - mode: plugin-top (required)
+     * - lang: optional
+     * - month: optional (YYYYMM)
+     * - num: optional number of results (default = 10)
+     *
+     * @param Doku_Event $event
+     */
+    public function handleFeed(Doku_Event $event)
+    {
+        $opt = $event->data['opt'];
+        if ($opt['feed_mode'] !== 'plugin-top') return;
 
+        $event->preventDefault();
+
+        // set defaults as expected by the helper's best() method
+        $lang = isset($opt['lang']) ? $opt['lang'] : null;
+        $month = isset($opt['month']) ? $opt['month'] : null;
+        $num = isset($opt['num']) ? $opt['num'] : 10;
+
+        /** @var helper_plugin_top $hlp */
+        $hlp = plugin_load('helper', 'top');
+        $pages = $hlp->best($lang, $month, $num);
+
+        if (empty($pages)) return;
+
+        foreach ($pages as $page) {
+            if (!$hlp->isReadable($page['page'])) continue;
+            $event->data['data'][] = [
+                'id' => $page['page'],
+                'score' => $page['value'],
+            ];
+        }
+    }
+}
 // vim:ts=4:sw=4:et:

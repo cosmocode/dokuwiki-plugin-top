@@ -10,7 +10,7 @@
  */
 
 class best_top_test extends DokuWikiTest {
-    protected $pluginsEnabled = array('top','sqlite');
+    protected $pluginsEnabled = array('top','sqlite', 'translation');
 
     function test_best() {
 
