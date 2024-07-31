@@ -1,7 +1,7 @@
 base   top
 author Andreas Gohr
 email  gohr@cosmocode.de
-date   2016-01-13
+date   2020-11-24
 name   top plugin
 desc   show the top ten most visited pages
 url    https://www.dokuwiki.org/plugin:top
